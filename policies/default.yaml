@@ -1,0 +1,55 @@
+# Default Firewall Policies
+#
+# Policies are evaluated in order - first match wins
+
+policies:
+  # CRITICAL - Block immediately
+  - name: "block_critical_threats"
+    enabled: true
+    action: "block"
+    severity: "critical"
+    threshold: 0.85
+    description: "Block critical-severity threats immediately"
+    
+  # HIGH - Sanitize but allow through
+  - name: "sanitize_high_threats"
+    enabled: true
+    action: "sanitize"
+    severity: "high"
+    threshold: 0.65
+    description: "Sanitize high-severity prompts before processing"
+    
+  # MEDIUM - Log for monitoring
+  - name: "log_medium_threats"
+    enabled: true
+    action: "log"
+    severity: "medium"
+    threshold: 0.40
+    description: "Log medium-severity prompts for analysis"
+    
+  # Specific category rules
+  - name: "block_jailbreaks"
+    enabled: true
+    action: "block"
+    severity: "high"
+    threshold: 0.70
+    description: "Block jailbreak attempts"
+    conditions:
+      categories: ["jailbreak"]
+      
+  - name: "sanitize_pii"
+    enabled: true
+    action: "sanitize"
+    severity: "medium"
+    threshold: 0.30
+    description: "Remove PII from prompts"
+    conditions:
+      categories: ["pii_leak", "data_exfiltration"]
+  
+  # DEFAULT - Allow safe prompts
+  - name: "allow_safe"
+    enabled: true
+    action: "allow"
+    severity: "safe"
+    threshold: 0.0
+    description: "Allow safe prompts through"
