@@ -50,9 +50,9 @@ def main():
     # Start server
     print("[*] Starting Prompt Firewall API...")
     print("\n" + "-"*70)
-    print("    🌐 API:        http://localhost:8000")
-    print("    📚 API Docs:   http://localhost:8000/docs")
-    print("    📊 Dashboard:  http://localhost:8000/dashboard")
+    print("    🌐 API:        http://localhost:8002")
+    print("    📚 API Docs:   http://localhost:8002/docs")
+    print("    📊 Dashboard:  http://localhost:8002/dashboard")
     print("-"*70)
     print("\n[*] Press Ctrl+C to stop\n")
     
@@ -61,7 +61,7 @@ def main():
             sys.executable, "-m", "uvicorn",
             "api.main:app",
             "--host", "0.0.0.0",
-            "--port", "8000",
+            "--port", "8002",
             "--reload"
         ])
     except KeyboardInterrupt:
