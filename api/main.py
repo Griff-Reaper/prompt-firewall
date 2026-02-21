@@ -12,6 +12,23 @@ from typing import Optional, List, Dict, Any
 import time
 import sys
 from pathlib import Path
+import httpx
+import asyncio
+from datetime import datetime
+
+NEXUS_URL = "http://localhost:8000"
+
+async def push_to_nexus(payload: dict):
+    """Fire and forget - don't block the firewall response"""
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"{NEXUS_URL}/firewall/ingest",
+                json=payload,
+                timeout=5.0
+            )
+    except Exception:
+        pass  # Nexus being offline never affects firewall operation
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -41,7 +58,7 @@ app.add_middleware(
 
 # Initialize firewall
 firewall = create_firewall(
-    use_prompt_shield=False,  # Set to True when Prompt-Shield available
+    use_prompt_shield=True,  # Set to True when Prompt-Shield available
     log_dir="../logs",
     enable_logging=True
 )
@@ -154,6 +171,18 @@ async def check_prompt(request: CheckRequest):
             session_id=request.session_id
         )
         
+        # Fire and forget to Nexus — doesn't block response
+        asyncio.create_task(push_to_nexus({
+            "source": "prompt-firewall",
+            "session_id": request.session_id or "anonymous",
+            "original_prompt": request.prompt,
+            "action": response.action.value,
+            "threat_score": response.threat_score,
+            "threat_level": response.threat_level.value,
+            "sanitized_prompt": response.sanitized_prompt,
+            "timestamp": datetime.utcnow().isoformat()
+        }))
+        
         return CheckResponse(
             action=response.action.value,
             allowed=response.allowed,
@@ -258,7 +287,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8002,
         reload=True,
         log_level="info"
     )
